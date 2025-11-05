@@ -20,6 +20,18 @@ class CircleShape(pygame.sprite.Sprite):
     def update(self, dt):
         # sub-classes must override
         pass
+
+    def wrap_position(self, screen_width, screen_height):
+        """Wrap position around screen edges"""
+        if self.position.x > screen_width + self.radius:
+            self.position.x = -self.radius
+        elif self.position.x < -self.radius:
+            self.position.x = screen_width + self.radius
+
+        if self.position.y > screen_height + self.radius:
+            self.position.y = -self.radius
+        elif self.position.y < -self.radius:
+            self.position.y = screen_height + self.radius
     
     def check_collision(self, target):
         distance = self.position.distance_to(target.position)
