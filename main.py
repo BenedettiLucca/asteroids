@@ -8,6 +8,7 @@ from shot import Shot
 from starfield import StarField
 from particles import ParticleSystem
 from audio import AudioManager
+from storage import load_highscore, save_highscore
 
 def main():
   pygame.init()
@@ -32,11 +33,7 @@ def main():
   AsteroidField.containers = (updatable)
   Shot.containers = (shots, updatable, drawable)
 
-  try:
-    with open('highscore.txt', 'r') as f:
-      high_score = int(f.read())
-  except:
-    high_score = 0
+  high_score = load_highscore()
 
   game_over = False
   paused = False
@@ -56,8 +53,7 @@ def main():
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         if player.score > high_score:
-          with open('highscore.txt', 'w') as f:
-            f.write(str(player.score))
+          save_highscore(player.score)
         print(f"Final score: {player.score}")
         print(f"High score: {high_score}")
         return
@@ -81,8 +77,7 @@ def main():
               game_over = True
               if player.score > high_score:
                 high_score = player.score
-                with open('highscore.txt', 'w') as f:
-                  f.write(str(high_score))
+                save_highscore(high_score)
 
         for asteroid in asteroids:
           for shot in shots:
