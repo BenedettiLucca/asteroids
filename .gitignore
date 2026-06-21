@@ -3,3 +3,6 @@ venv/
 __pycache__/
 highscore.txt
 .claude/
+# Cron job review artifacts
+REVIEW_NOTES.md
+WEEKLY_REVIEW_*.md
