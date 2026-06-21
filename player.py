@@ -5,7 +5,7 @@ from circleshape import CircleShape
 from constants import PLAYER_RADIUS
 from shot import Shot
 class Player(CircleShape):
-  def __init__(self, x, y, particle_system=None, audio_manager=None):
+  def __init__(self, x, y, particle_system=None, audio_manager=None, player_id=1, color="white"):
     super().__init__(x, y, PLAYER_RADIUS)
     self.rotation = 0
     self.shoot_timer = 0
@@ -16,13 +16,52 @@ class Player(CircleShape):
     self.thrusting = False
     self.particle_system = particle_system
     self.audio_manager = audio_manager
+    self.player_id = player_id
+    self.color = color
+    self.controls = self.get_controls()
+
+    # Definir nome do jogador
+    if player_id == 1:
+      self.name = "JOGADOR 1"
+    else:
+      self.name = "JOGADOR 2"
+
+  def get_controls(self):
+    """Retorna os controles específicos de cada jogador"""
+    if self.player_id == 1:
+      return {
+        'forward': pygame.K_w,
+        'backward': pygame.K_s,
+        'left': pygame.K_a,
+        'right': pygame.K_d,
+        'shoot': pygame.K_SPACE
+      }
+    else:
+      return {
+        'forward': pygame.K_UP,
+        'backward': pygame.K_DOWN,
+        'left': pygame.K_LEFT,
+        'right': pygame.K_RIGHT,
+        'shoot': pygame.K_RCTRL
+      }
+
+  def is_alive(self):
+    """Verifica se o jogador está vivo (ainda tem vidas)"""
+    return self.lives > 0
 
   def draw(self, screen):
     if self.invulnerable_timer > 0:
       if int(self.invulnerable_timer * 10) % 2 == 0:
-        pygame.draw.polygon(screen, "white", self.triangle(), 2)
+        pygame.draw.polygon(screen, self.color, self.triangle(), 2)
     else:
-      pygame.draw.polygon(screen, "white", self.triangle(), 2)
+      pygame.draw.polygon(screen, self.color, self.triangle(), 2)
+
+    # Draw player name above the ship (smaller font)
+    if self.lives > 0:  # Only draw name if player is alive
+      font = pygame.font.Font(None, 24)
+      text = font.render(self.name, True, self.color)
+      text_rect = text.get_rect(center=(self.position.x, self.position.y - 30))
+      screen.blit(text, text_rect)
   
   # in the player class
   def triangle(self):
@@ -40,17 +79,18 @@ class Player(CircleShape):
     keys = pygame.key.get_pressed()
     self.thrusting = False
 
-    if keys[pygame.K_a]:
+    # Usar controles específicos do jogador
+    if keys[self.controls['left']]:
       self.rotate((-1)*dt)
-    if keys[pygame.K_d]:
+    if keys[self.controls['right']]:
       self.rotate(dt)
-    if keys[pygame.K_s]:
+    if keys[self.controls['backward']]:
       self.thrusting = True
       self.move((-1)*dt)
-    if keys[pygame.K_w]:
+    if keys[self.controls['forward']]:
       self.thrusting = True
       self.move(dt)
-    if keys[pygame.K_SPACE]:
+    if keys[self.controls['shoot']]:
       self.shoot()
 
     self.shoot_timer -= dt
@@ -72,7 +112,7 @@ class Player(CircleShape):
     if self.shoot_timer > 0:
       return
     velocity = pygame.Vector2(0, 1).rotate(self.rotation)
-    Shot(self.position.x, self.position.y, velocity)
+    Shot(self.position.x, self.position.y, velocity, owner=self)
     self.shoot_timer = PLAYER_SHOOT_COOLDOWN
     
   def add_score(self, points):
